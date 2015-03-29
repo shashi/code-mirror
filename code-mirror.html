@@ -63,6 +63,11 @@ license that can be found in the LICENSE file.
           foldGutter: true,
           gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
         });
+        var self = this
+        this.mirror.on("change", function () {
+            self.currentValue = self.mirror.getValue()
+            self.fire("change")
+        })
       },
       refresh: function() {
         this.mirror.refresh();
