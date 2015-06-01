@@ -32,14 +32,13 @@ license that can be found in the LICENSE file.
     <style>
       :host {
         display: block;
-        position: relative;
+        height: auto;
       }
       .CodeMirror {
-        position: absolute;
+        border: 1px solid #eee;
         top: 0;
         left: 0;
-        height: 100%;
-        width: 100%;
+        height: inherit;
       }
     </style>
   </template>
@@ -50,6 +49,7 @@ license that can be found in the LICENSE file.
       theme: 'xq-light',
       tabSize: 2,
       lineNumbers: true,
+      viewportMargin: Infinity,
       ready: function() {
         if (!this.value) {
           this.value = this.textContent;
@@ -60,6 +60,7 @@ license that can be found in the LICENSE file.
           theme: this.theme,
           tabSize: this.tabSize,
           lineNumbers: this.lineNumbers,
+          viewportMargin: Infinity,
           foldGutter: true,
           gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
         });
