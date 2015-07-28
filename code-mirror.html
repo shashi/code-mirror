@@ -46,15 +46,22 @@ license that can be found in the LICENSE file.
           mode: this.mode,
           theme: this.theme,
           tabSize: this.tabSize,
+          readOnly: this.readOnly,
           lineNumbers: this.lineNumbers,
           viewportMargin: Infinity,
           foldGutter: true,
-          gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+          gutters: ["CodeMirror-linenumbers"]
         });
         var self = this
         this.mirror.on("change", function () {
             self.currentValue = self.mirror.getValue()
             self.fire("change")
+        })
+        // Avoid slide changes in slideshow mode
+        this.addEventListener("keydown", function (ev) {
+            if (ev.which <= 40 && ev.which >= 37 || ev.which == 13) {
+                ev.stopPropagation()
+            }
         })
       },
       refresh: function() {
