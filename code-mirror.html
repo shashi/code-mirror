@@ -1,43 +1,23 @@
-<!--
-Copyright 2013 The Polymer Authors. All rights reserved.
-Use of this source code is governed by a BSD-style
-license that can be found in the LICENSE file.
--->
-
 <link rel="import" href="../polymer/polymer.html">
 
 <script src="codemirror/lib/codemirror.js"></script>
-<script src="codemirror/addon/fold/foldcode.js"></script>
-<script src="codemirror/addon/fold/foldgutter.js"></script>
-<script src="codemirror/addon/fold/brace-fold.js"></script>
-<script src="codemirror/addon/fold/xml-fold.js"></script>
-<script src="codemirror/addon/fold/markdown-fold.js"></script>
-<script src="codemirror/addon/fold/comment-fold.js"></script>
-<script src="codemirror/addon/search/searchcursor.js"></script>
-<link href="codemirror/addon/fold/foldgutter.css" rel="stylesheet">
-<script id="mode" src="codemirror/mode/julia/julia.js"></script>
+<link rel="stylesheet" href="codemirror/lib/codemirror.css">
+
+<script src="codemirror/mode/julia/julia.js"></script>
+<link id="theme" rel="stylesheet" href="codemirror/theme/elegant.css">
+
+<style>
+  .CodeMirror {
+    height: auto;
+  }
+</style>
 
 <dom-module id="code-mirror">
-  <template>
-    <link rel="stylesheet" href="codemirror/lib/codemirror.css">
-    <link id="theme" rel="stylesheet" href="codemirror/theme/elegant.css">
+  <template></template>
 
-    <style>
-      :host {
-        display: block;
-        height: auto;
-      }
-      .CodeMirror {
-        top: 0;
-        left: 0;
-        height: inherit;
-      }
-    </style>
-
-    <div id="mirror"></div>
-  </template>
   <script>
-Polymer({
+
+  Polymer({
     is: "code-mirror",
     behaviors: [EscherMixins.LifeCycle],
 
@@ -95,7 +75,8 @@ Polymer({
     _modeScript: function (theme) {
       return "codemirror/mode/" + mode + "/" + mode + ".js"
     },
-    ready: function() {
+
+    domInit: function() {
       //this.$.theme.href = this._themeStylesheet(this.theme)
       //this.$.mode.src = this._modeScript(this.mode)
       if (!this.value) {
@@ -112,24 +93,21 @@ Polymer({
         foldGutter: true,
         gutters: ["CodeMirror-linenumbers"]
       });
+
       var self = this
       this.mirror.on("change", function () {
           self.currentValue = self.mirror.getValue()
           self.fire("change")
       })
+
       // Avoid slide changes in slideshow mode
       this.addEventListener("keydown", function (ev) {
           if (ev.which <= 40 && ev.which >= 37 || ev.which == 13) {
               ev.stopPropagation()
           }
       })
-      setTimeout(function(){self.refresh()}, 0) // FIXME: Why is this required??
-    },
-    refresh: function() {
-      this.mirror.refresh();
-    },
-    focus: function() {
-      this.mirror.focus();
+
+      setTimeout(function(){self.mirror.refresh()}, 100) // FIXME: Why is this required??
     }
   });
   </script>
