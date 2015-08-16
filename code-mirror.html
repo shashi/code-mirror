@@ -3,19 +3,24 @@ Copyright 2013 The Polymer Authors. All rights reserved.
 Use of this source code is governed by a BSD-style
 license that can be found in the LICENSE file.
 -->
-<link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="codemirror-import.html">
 
-<polymer-element name="code-mirror" attributes="value mode theme tabSize lineNumbers">
+<link rel="import" href="../polymer/polymer.html">
+
+<script src="codemirror/lib/codemirror.js"></script>
+<script src="codemirror/addon/fold/foldcode.js"></script>
+<script src="codemirror/addon/fold/foldgutter.js"></script>
+<script src="codemirror/addon/fold/brace-fold.js"></script>
+<script src="codemirror/addon/fold/xml-fold.js"></script>
+<script src="codemirror/addon/fold/markdown-fold.js"></script>
+<script src="codemirror/addon/fold/comment-fold.js"></script>
+<script src="codemirror/addon/search/searchcursor.js"></script>
+<link href="codemirror/addon/fold/foldgutter.css" rel="stylesheet">
+<script id="mode" src="codemirror/mode/julia/julia.js"></script>
+
+<dom-module id="code-mirror">
   <template>
-    <link rel="stylesheet" href="codemirror-5.0/lib/codemirror.css">
-    <link href="codemirror-5.0/theme/ambiance.css" rel="stylesheet">
-    <link href="codemirror-5.0/theme/ambiance-mobile.css" rel="stylesheet">
-    <link href="codemirror-5.0/theme/elegant.css" rel="stylesheet">
-    <link href="codemirror-5.0/theme/monokai.css" rel="stylesheet">
-    <link href="codemirror-5.0/theme/solarized.css" rel="stylesheet">
-    <link href="codemirror-5.0/theme/twilight.css" rel="stylesheet">
-    <link href="codemirror-5.0/addon/fold/foldgutter.css" rel="stylesheet">
+    <link rel="stylesheet" href="codemirror/lib/codemirror.css">
+    <link id="theme" rel="stylesheet" href="codemirror/theme/elegant.css">
 
     <style>
       :host {
@@ -28,63 +33,103 @@ license that can be found in the LICENSE file.
         height: inherit;
       }
     </style>
+
+    <div id="mirror"></div>
   </template>
   <script>
-    Polymer('code-mirror', {
-      value: '',
-      mode: 'htmlmixed',
-      theme: 'xq-light',
-      tabSize: 2,
-      lineNumbers: true,
-      viewportMargin: Infinity,
-      ready: function() {
-        if (!this.value) {
-          this.value = this.textContent;
-        }
-        this.mirror = CodeMirror(this.shadowRoot, {
-          value: this.value || this.textContent,
-          mode: this.mode,
-          theme: this.theme,
-          tabSize: this.tabSize,
-          readOnly: this.readOnly,
-          lineNumbers: this.lineNumbers,
-          viewportMargin: Infinity,
-          foldGutter: true,
-          gutters: ["CodeMirror-linenumbers"]
-        });
-        var self = this
-        this.mirror.on("change", function () {
-            self.currentValue = self.mirror.getValue()
-            self.fire("change")
-        })
-        // Avoid slide changes in slideshow mode
-        this.addEventListener("keydown", function (ev) {
-            if (ev.which <= 40 && ev.which >= 37 || ev.which == 13) {
-                ev.stopPropagation()
-            }
-        })
+Polymer({
+    is: "code-mirror",
+    behaviors: [EscherMixins.LifeCycle],
+
+    properties: {
+      value: {
+        type: String,
+        value: '',
+        notify: true
       },
-      refresh: function() {
-        this.mirror.refresh();
+      mode: {
+        type: String,
+        value: 'julia',
+        notify: true
       },
-      valueChanged: function() {
+      theme: {
+        type: String,
+        value: 'elegant',
+        notify: true
+      },
+      tabSize: {
+        type: Number,
+        value: 2,
+        notify: true
+      },
+      lineNumbers: {
+        type: Boolean,
+        value: true,
+        notify: true
+      }
+    },
+    listeners: {
+      "value-changed": function() {
         this.mirror.setValue(this.value);
       },
-      modeChanged: function() {
-        this.mirror.setOption('mode', this.mode);
+      "mode-changed": function() {
+        this.$.mode.src = this._modeScript(this.mode)
+        console.log("loading JS", this.mode)
+        this.mirror.setOption('mode', this.mode)
       },
-      themeChanged: function() {
+      "theme-changed": function() {
+        this.$.theme.href = this._themeStylesheet(this.theme)
+        console.log("loading CSS", this.theme)
         this.mirror.setOption('theme', this.theme);
       },
-      tabSizeChanged: function() {
+      "tabSize-changed": function() {
         this.mirror.setOption('tabSize', this.tabSize);
       },
-      lineNumbersChanged: function() {
+      "line-numbers-changed": function () {
         this.mirror.setOption('lineNumbers', this.lineNumbers);
       },
-      focus: function() {
-        this.mirror.focus();
+    },
+    _themeStylesheet: function (theme) {
+      return "codemirror/theme/" + theme + ".css"
+    },
+    _modeScript: function (theme) {
+      return "codemirror/mode/" + mode + "/" + mode + ".js"
+    },
+    ready: function() {
+      //this.$.theme.href = this._themeStylesheet(this.theme)
+      //this.$.mode.src = this._modeScript(this.mode)
+      if (!this.value) {
+        this.value = this.textContent;
       }
-    });
+      this.mirror = CodeMirror(this, {
+        value: this.value,
+        mode: this.mode,
+        theme: this.theme,
+        tabSize: this.tabSize,
+        readOnly: this.readOnly,
+        lineNumbers: this.lineNumbers,
+        viewportMargin: Infinity,
+        foldGutter: true,
+        gutters: ["CodeMirror-linenumbers"]
+      });
+      var self = this
+      this.mirror.on("change", function () {
+          self.currentValue = self.mirror.getValue()
+          self.fire("change")
+      })
+      // Avoid slide changes in slideshow mode
+      this.addEventListener("keydown", function (ev) {
+          if (ev.which <= 40 && ev.which >= 37 || ev.which == 13) {
+              ev.stopPropagation()
+          }
+      })
+    },
+    refresh: function() {
+      this.mirror.refresh();
+    },
+    focus: function() {
+      this.mirror.focus();
+    }
+  });
   </script>
-</polymer-element>
+</dom-module>
