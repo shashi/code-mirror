@@ -123,6 +123,7 @@ Polymer({
               ev.stopPropagation()
           }
       })
+      setTimeout(function(){self.refresh()}, 0) // FIXME: Why is this required??
     },
     refresh: function() {
       this.mirror.refresh();
